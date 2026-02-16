@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "PlayEvent",
+  "namespace": "com.netflix.data",
+  "fields": [
+    {"name": "user_id", "type": "string"},
+    {"name": "movie_id", "type": "string"},
+    {"name": "timestamp", "type": "long"},
+    {"name": "event_type", "type": {"type": "enum", "name": "EventType", "symbols": ["START", "PAUSE", "STOP", "BUFFER"]}},
+    {"name": "device_type", "type": "string"},
+    {"name": "location", "type": "string"}
+  ]
+}

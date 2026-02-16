@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "MovieRating",
+  "namespace": "com.netflix.data",
+  "fields": [
+    {"name": "user_id", "type": "string"},
+    {"name": "movie_id", "type": "string"},
+    {"name": "rating", "type": "int"},
+    {"name": "comment", "type": ["null", "string"], "default": null},
+    {"name": "timestamp", "type": "long"}
+  ]
+}

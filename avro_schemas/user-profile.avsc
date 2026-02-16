@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "UserProfile",
+  "namespace": "com.netflix.data",
+  "fields": [
+    {"name": "user_id", "type": "string"},
+    {"name": "email", "type": "string"},
+    {"name": "subscription_type", "type": {"type": "enum", "name": "SubPlan", "symbols": ["BASIC", "STANDARD", "PREMIUM"]}},
+    {"name": "country", "type": "string"},
+    {"name": "age", "type": "int"}
+  ]
+}
