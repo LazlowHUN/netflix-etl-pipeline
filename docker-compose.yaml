@@ -53,3 +53,14 @@ services:
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
       KAFKA_CLUSTERS_0_METRICS_PORT: 9997
     
+  locust:
+    build: .
+    container_name: locust-load-generator
+    depends_on:
+      - kafka
+      - schema-registry
+    ports:
+      - "8089:8089"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
