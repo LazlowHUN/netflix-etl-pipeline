@@ -9,9 +9,9 @@ from datetime import datetime
 def load_kafka_to_oracle():
 
     @task
-    def load_from_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, target_schema, target_table, chunksize, if_truncate=True):
+    def load_from_db_to_db(source_conn_id, source_schema, source_table, target_conn_id, target_schema, target_table, chunksize=10000, if_truncate=True):
         from modules.database_functions import load_db_to_db
-        load_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, target_schema, target_table, chunksize, if_truncate=True)
+        load_db_to_db(source_conn_id=source_conn_id, source_schema=source_schema, source_table=source_table, target_conn_id=target_conn_id, target_schema=target_schema, target_table=target_table, chunksize=chunksize, if_truncate=if_truncate)
 
     LOAD_ORACLE_TO_ORACLE = load_from_db_to_db.override(task_id="LOAD_ORACLE_TO_ORACLE")(
         source_conn_id="ORACLE_TEST_DWH",

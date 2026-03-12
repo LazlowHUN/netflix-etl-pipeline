@@ -1,12 +1,12 @@
 import pandas as pd
-from sqlalchemy import text
+from sqlalchemy import text, MetaData, Table, inspect
 import sys
 import oracledb
 
 # from airflow.providers.apache.kafka.hooks.consume import KafkaConsumerHook
 # from airflow.providers.apache.kafka.operators.consume import ConsumeFromTopicOperator
 
-def load_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, target_schema, target_table, chunksize, if_truncate=True):
+def load_db_to_db(source_conn_id, source_schema, source_table, target_conn_id, target_schema, target_table, chunksize, if_truncate=True):
     from airflow.providers.oracle.hooks.oracle import OracleHook
 
     src_hook = OracleHook(oracle_conn_id=source_conn_id)
@@ -17,10 +17,17 @@ def load_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, t
     else:
         tgt_hook = OracleHook(oracle_conn_id=target_conn_id)
         target_engine = tgt_hook.get_sqlalchemy_engine()
+
+    inspector = inspect(target_engine)
+    target_table_available = inspector.has_table(target_table, schema=target_schema)
+
+    if not target_table_available:
+        create_table(source_engine, source_schema, source_table, target_engine, target_schema, target_table)
     
-    with target_engine.connect() as conn:
-        conn.execute(text(f"TRUNCATE TABLE {target_schema}.{target_table}"))
-        conn.commit()
+    if if_truncate and target_table_available:
+        with target_engine.connect() as conn:
+            conn.execute(text(f"TRUNCATE TABLE {target_schema}.{target_table}"))
+            conn.commit()
 
     with source_engine.connect().execution_options(stream_results=True) as src_conn:
         chunk = pd.read_sql(f"SELECT * FROM {source_schema}.{source_table}", source_engine, index_col=None, chunksize=chunksize)
@@ -29,7 +36,7 @@ def load_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, t
             print(f"Processing chunk {i+1}...")
             
             chunk_df.to_sql(
-                name=target_table,
+                name=target_table.lower(),
                 con=target_engine,
                 schema=target_schema,
                 if_exists='append',
@@ -38,3 +45,12 @@ def load_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, t
             )
             
     print(f"Data moved from {source_table} to {target_table}")
+
+
+def create_table(source_engine, source_schema, source_table, target_engine, target_schema, target_table):
+    print(f"Create target table: {target_schema}.{target_table} from {source_schema}.{source_table}")
+    meta = MetaData()
+    source_tbl_obj = Table(source_table.lower(), meta, autoload_with=source_engine, schema=source_schema)
+    source_tbl_obj.to_metadata(meta, name=target_table, schema=target_schema)
+    meta.create_all(target_engine)
+    print("Table created")
