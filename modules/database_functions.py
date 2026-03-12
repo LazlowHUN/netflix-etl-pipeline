@@ -1,5 +1,8 @@
 import pandas as pd
 from sqlalchemy import text
+import sys
+import oracledb
+
 # from airflow.providers.apache.kafka.hooks.consume import KafkaConsumerHook
 # from airflow.providers.apache.kafka.operators.consume import ConsumeFromTopicOperator
 
@@ -31,7 +34,6 @@ def load_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, t
                 schema=target_schema,
                 if_exists='append',
                 index=False,
-                method='multi',
                 chunksize=chunksize
             )
             

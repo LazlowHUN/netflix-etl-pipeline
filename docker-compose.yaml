@@ -1,100 +1,102 @@
 services:
-  kafka:
-    image: confluentinc/cp-kafka:7.7.7
-    container_name: kafka
-    ports: 
-      - "9092:9092" # outside traffic
-      - "29092:29092" # Inside traffic
-    environment:
-      #KRaft specific settings
-      KAFKA_NODE_ID: 1 # broker id
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      # UUID
-      CLUSTER_ID: 'dAYGBRloS-KdbQ6Ft0WoPw'
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.7.7
+  #   container_name: kafka
+  #   ports: 
+  #     - "9092:9092" # outside traffic
+  #     - "29092:29092" # Inside traffic
+  #   environment:
+  #     #KRaft specific settings
+  #     KAFKA_NODE_ID: 1 # broker id
+  #     KAFKA_PROCESS_ROLES: 'broker,controller'
+  #     KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+  #     KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+  #     # UUID
+  #     CLUSTER_ID: 'dAYGBRloS-KdbQ6Ft0WoPw'
 
-      # Specify kafka listeners
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+  #     # Specify kafka listeners
+  #     KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+  #     KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
 
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  #     KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
 
-  schema-registry:
-    image: confluentinc/cp-schema-registry:7.7.0
-    container_name: schema-registry
-    depends_on:
-      - kafka
-    ports:
-      - "8081:8081"
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka:29092'
-      SCHEMA_REGISTRY_LISTENERS: 'http://0.0.0.0:8081'
-      SCHEMA_REGISTRY_KAFKASTORE_REPLICATION_FACTOR: 1
+  # schema-registry:
+  #   image: confluentinc/cp-schema-registry:7.7.0
+  #   container_name: schema-registry
+  #   depends_on:
+  #     - kafka
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     SCHEMA_REGISTRY_HOST_NAME: schema-registry
+  #     SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka:29092'
+  #     SCHEMA_REGISTRY_LISTENERS: 'http://0.0.0.0:8081'
+  #     SCHEMA_REGISTRY_KAFKASTORE_REPLICATION_FACTOR: 1
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    ports:
-      - 8080:8080
-    depends_on:
-      - kafka
-      - schema-registry
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local-netflix-lab
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
-      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
+  # kafka-ui:
+  #   image: provectuslabs/kafka-ui:latest
+  #   container_name: kafka-ui
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #     - kafka
+  #     - schema-registry
+  #   environment:
+  #     KAFKA_CLUSTERS_0_NAME: local-netflix-lab
+  #     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+  #     KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+  #     KAFKA_CLUSTERS_0_METRICS_PORT: 9997
     
-  locust:
-    build: .
-    container_name: locust-load-generator
-    depends_on:
-      - kafka
-      - schema-registry
-    ports:
-      - "8089:8089"
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: 'kafka:29092'
-      SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+  # locust:
+  #   build:
+        # context: .
+        # dockerfile: dockerfile.locust
+  #   container_name: locust-load-generator
+  #   depends_on:
+  #     - kafka
+  #     - schema-registry
+  #   ports:
+  #     - "8089:8089"
+  #   environment:
+  #     KAFKA_BOOTSTRAP_SERVERS: 'kafka:29092'
+  #     SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
 
-  minio:
-    image: quay.io/minio/minio:latest
-    container_name: minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin1234
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
-    restart: always
-
-  createbuckets:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      echo 'Waiting for minio server start...';
-      sleep 5;
-      until (/usr/bin/mc alias set myminio http://minio:9000 admin admin1234); do 
-        echo 'A MinIO is not available yet...';
-        sleep 2;
-      done;
-      /usr/bin/mc mb myminio/netflix-logs || echo 'Bucket already created';
-      /usr/bin/mc anonymous set public myminio/netflix-logs;
-      exit 0;
-      "
+  # minio:
+  #   image: quay.io/minio/minio:latest
+  #   container_name: minio
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   environment:
+  #     MINIO_ROOT_USER: admin
+  #     MINIO_ROOT_PASSWORD: admin1234
+  #   volumes:
+  #     - minio_data:/data
+  #   command: server /data --console-address ":9001"
+  #   restart: always
+ 
+  # createbuckets:
+  #   image: minio/mc
+  #   depends_on:
+  #     - minio
+  #   entrypoint: >
+  #     /bin/sh -c "
+  #     echo 'Waiting for minio server start...';
+  #     sleep 5;
+  #     until (/usr/bin/mc alias set myminio http://minio:9000 admin admin1234); do 
+  #       echo 'A MinIO is not available yet...';
+  #       sleep 2;
+  #     done;
+  #     /usr/bin/mc mb myminio/netflix-logs || echo 'Bucket already created';
+  #     /usr/bin/mc anonymous set public myminio/netflix-logs;
+  #     exit 0;
+  #     "
 
   oracle-db:
     image: gvenzl/oracle-xe:latest
@@ -107,18 +109,22 @@ services:
       - oracle_data:/opt/oracle/oradata
 
   airflow:
-    image: apache/airflow:3.0.0
+    build:
+      context: .
+      dockerfile: dockerfile.airflow
     container_name: airflow
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__webserver__base_url=http://localhost:8082
+      - PYTHONPATH=/opt/airflow/
     ports:
       - "8082:8080"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
+      - ./modules:/opt/airflow/modules
     command: standalone
     depends_on:
       - postgres
@@ -131,19 +137,19 @@ services:
       - POSTGRES_PASSWORD=airflow
       - POSTGRES_DB=airflow
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
-    volumes:
-      - grafana_data:/var/lib/grafana
-    depends_on:
-      - postgres
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #     - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   depends_on:
+  #     - postgres
 
 volumes:
   minio_data:

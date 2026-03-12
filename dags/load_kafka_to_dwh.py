@@ -8,12 +8,15 @@ from datetime import datetime
 )
 def load_kafka_to_oracle():
 
-    from module.database_functions import load_db_to_db
+    @task
+    def load_from_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, target_schema, target_table, chunksize, if_truncate=True):
+        from modules.database_functions import load_db_to_db
+        load_db_to_db(source_conn_id, source_table, source_schema, target_conn_id, target_schema, target_table, chunksize, if_truncate=True)
 
-    LOAD_ORACLE_TO_ORACLE = load_db_to_db.override(task_id="LOAD_ORACLE_TO_ORACLE")(
+    LOAD_ORACLE_TO_ORACLE = load_from_db_to_db.override(task_id="LOAD_ORACLE_TO_ORACLE")(
         source_conn_id="ORACLE_TEST_DWH",
-        source_table="EMPLOYEES",
         source_schema="TEST_SOURCE",
+        source_table="EMPLOYEES",
         target_conn_id="ORACLE_TEST_DWH",
         target_schema="TEST_TARGET",
         target_table="EMPLOYEES",
